@@ -1,0 +1,6 @@
+a = add(5, 10);
+b = sub(a, 3);
+c = mul(b, add(4, 6));
+print a;
+print b;
+print c;

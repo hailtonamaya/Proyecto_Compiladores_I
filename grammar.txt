@@ -1,0 +1,79 @@
+program -> KW_CLASS IDENTIFIER OPEN_CURLY
+            ( variable_decl )*
+            ( method_decl )*
+          CLOSE_CURLY
+
+variable_decl -> type IDENTIFIER ( COMMA IDENTIFIER )* SEMICOLON
+type -> KW_INT [ OPEN_BRACKET CONSTANT CLOSE_BRACKET ]
+
+method_decl -> method_type IDENTIFIER OPEN_PAR opt_param_decl_list CLOSE_PAR
+                OPEN_CURLY
+                ( variable_decl )*
+                ( stmt )*
+                CLOSE_CURLY
+
+method_type -> KW_INT | KW_VOID
+
+opt_param_decl_list -> [ param_decl ( COMMA param_decl ) ]
+
+param_decl -> [ KW_REF ] type IDENTIFIER
+
+stmt -> assign_stmt
+        | if_stmt
+        | while_stmt
+        | call_stmt
+        | return_stmt
+        | print_stmt
+        | read_stmt
+
+assign_stmt -> IDENTIFIER [ OPEN_BRACKET expression CLOSE_BRACKET ] OP_ASSIGN expression SEMICOLON
+
+return_stmt -> KW_RETURN expresion SEMICOLON
+
+if_stmt -> KW_IF OPEN_PAR expression CLOSE_PAR
+            block
+            [ KW_ELSE
+                block
+            ]
+
+block -> OPEN_CURLY
+            ( stmt )*
+         CLOSE_CURLY
+
+while_stmt -> KW_WHILE OPEN_PAR expressionession CLOSE_PAR
+                block
+
+call_stmt -> IDENTIFIER OPEN_PAR [ expresion ( COMMA expression )* ] CLOSE_PAR SEMICOLON
+
+print_stmt -> KW_PRINT OPEN_PAR (expression | STRING_LITERAL) CLOSE_PAR SEMICOLON
+
+read_stmt -> KW_READ OPEN_PAR IDENTIFIER CLOSE_PAR SEMICOLON
+
+expression -> boolean_expression
+
+boolean_expression -> boolean_term ( OP_BOOL_OR boolean_term )*
+
+boolean_term -> boolean_factor ( OP_BOOL_AND boolean_factor )*
+
+boolean_factor -> relational_expression | OP_BOOL_NOT boolean_factor
+
+relational_expression -> arithmetic_expression OP_EQUAL arithmetic_expression
+                        | arithmetic_expression OP_NOT_EQUAL arithmetic_expression
+                        | arithmetic_expression OP_LESS_THAN arithmetic_expression
+                        | arithmetic_expression OP_GREATHER_THAN arithmetic_expression
+                        | arithmetic_expression OP_LESS_EQUAL arithmetic_expression
+                        | arithmetic_expression OP_GREATHER_EQUAL arithmetic_expression
+                        | arithmetic_expression
+
+arithmetic_expression -> term ( (OP_ADD | OP_SUB) term )*
+
+term -> factor ( ( OP_MUL | OP_DIV | OP_MOD ) factor )*
+
+factor -> [OP_ADD | OP_SUB] primary
+
+primary ->  INT_CONST
+          | IDENTIFIER
+          | IDENTIFIER OPEN_BRACKET expression CLOSE_BRACKET
+          | IDENTIFIER OPEN_PAR [ expresion ( COMMA expression )* ] CLOSE_PAR
+          | OPEN_PAR expression CLOSE_PAR
+
