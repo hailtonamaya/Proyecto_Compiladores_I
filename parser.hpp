@@ -25,6 +25,7 @@ public:
     Parser(Lexer& lex): lex(lex){}
     Keyword getKeyword(const std::string& txt);
     void parse();
+    void updateText(Keyword kw);
 
 private:
     void program();
@@ -56,6 +57,7 @@ private:
 private:
     Lexer& lex;
     Token curr_tk;
+    Lexer::tkAhead tokenAhead1, tokenAhead2, tokenAhead3;
 };
 
 #endif
