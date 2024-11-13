@@ -17,7 +17,6 @@
 void Lexer::ungetToken(Token tk)
 {   
     tokenAhead.tk = tk;
-    tokenAhead.text = getText();
     tokenStack.push(tokenAhead);  // Almacenar el token en la pila
 }
 
@@ -25,18 +24,16 @@ void Lexer::ungetTokens(const std::vector<tkAhead>& tokens)
 {
     for (tkAhead tk : tokens) {
         tokenAhead = tk;
-        tokenAhead.text = getText();
         tokenStack.push(tokenAhead);  // Almacena cada token en la pila
     }
 }
-
 
 Token Lexer::getNextToken()
 {
     if (!tokenStack.empty()) {
         tkAhead tk = tokenStack.top();
         tokenStack.pop();  // Elimina el token de la pila
-        std::cout << "Returning token from stack: " << tokenToString(tk.tk) << std::endl;
+       // std::cout << "Returning token from stack: " << tokenToString(tk.tk) << text << std::endl;
         text = tk.text;
         return tk.tk;
     }
