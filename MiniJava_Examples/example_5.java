@@ -1,9 +1,10 @@
 class FibonacciCalculator {
     void printFibonacci(int count) {
         int a, b, temp;
+        int i;
         a = 0;
         b = 1;
-        int i;
+
         i = 0;
         while (i < count) {
             print(a);

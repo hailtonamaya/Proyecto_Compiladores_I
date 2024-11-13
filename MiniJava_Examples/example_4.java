@@ -5,12 +5,13 @@ class RefExample {
 
     void applyIncrements() {
         int base;
-        base = 10;
-        int values[5];
         int i;
+        int[5] values;
+        base = 10;
+       
         i = 0;
         while (i < 5) {
-            incrementBy(ref base, i);
+            incrementBy( base, i);
             values[i] = base;
             i = i + 1;
         }

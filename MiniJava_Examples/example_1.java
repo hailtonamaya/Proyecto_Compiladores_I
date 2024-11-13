@@ -1,11 +1,9 @@
 class MatrixOperations {
     int[9] matrix;
-    int i, j;
-    int total;
-    int i, j;
 
     void initializeMatrix() {
-        ii = 0;
+        int i, j;
+        i = 0;
         while (i < 3) {
             j = 0;
             while (j < 3) {
@@ -17,7 +15,8 @@ class MatrixOperations {
     }
 
     int getSum() {
-        
+        int total;
+        int i, j;
         total = 0;
         i = 0;
         while (i < 3) {

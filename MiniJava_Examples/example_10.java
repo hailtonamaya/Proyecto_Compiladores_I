@@ -1,6 +1,6 @@
 class NestedMethodCalls {
     int square(int x) {
-        return x * x;
+        return x + x;
     }
 
     int calculateExpression(int a, int b, int c) {

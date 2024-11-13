@@ -1,9 +1,10 @@
 class PrimeChecker {
     int isPrime(int num) {
+        int i;
         if (num <= 1) {
             return 0;
         }
-        int i;
+
         i = 2;
         while (i < num) {
             if (num % i == 0) {

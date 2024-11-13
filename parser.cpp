@@ -208,45 +208,38 @@ void Parser::method_decl()
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::OpenCurly){
                     curr_tk = lex.getNextToken();
-                        while(getKeyword(lex.getText()) == Keyword::Int){
-                            tokenAhead1.tk = curr_tk;
-                            std::string tokenAhead1Text = lex.getText();  // Guardar texto en una variable temporal
-                            tokenAhead1.text = tokenAhead1Text;
+                    while(getKeyword(lex.getText()) == Keyword::Int){
+                        tokenAhead1.tk = curr_tk;
+                        std::string tokenAhead1Text = lex.getText();  // Guardar texto en una variable temporal
+                        tokenAhead1.text = tokenAhead1Text;
 
-                            tokenAhead2.tk = lex.getNextToken();
-                            std::string tokenAhead2Text = lex.getText();  // Guardar texto en una variable temporal
-                            tokenAhead2.text = tokenAhead1Text;
+                        tokenAhead2.tk = lex.getNextToken();
+                        std::string tokenAhead2Text = lex.getText();  // Guardar texto en una variable temporal
+                        tokenAhead2.text = tokenAhead1Text;
 
-                            tokenAhead3.tk = lex.getNextToken();
-                            std::string tokenAhead3Text = lex.getText();  // Guardar texto en una variable temporal
-                            tokenAhead3.text = tokenAhead1Text;
-                            //std::cout << lex.getText() << std::endl;
-                            if(lex.getText() != "("){
-                                lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
-                                curr_tk = lex.getNextToken();
-                                variable_decl();
-                            }else{
-                                lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
-                                curr_tk = lex.getNextToken();
-                                break;
-                            }
-                        }
-                        while(curr_tk == Token::Ident || getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::While || getKeyword(lex.getText()) == Keyword::Return || getKeyword(lex.getText()) == Keyword::Print || getKeyword(lex.getText()) == Keyword::Read){
-                            stmt();
-                        }
-                        if(curr_tk == Token::CloseCurly){
+                        tokenAhead3.tk = lex.getNextToken();
+                        std::string tokenAhead3Text = lex.getText();  // Guardar texto en una variable temporal
+                        tokenAhead3.text = tokenAhead1Text;
+                        //std::cout << lex.getText() << std::endl;
+                        if(lex.getText() != "("){
+                            lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
                             curr_tk = lex.getNextToken();
+                            variable_decl();
                         }else{
-                            throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-                                        ": Expected '}', but found '"
-                                        + lex.getText() + "'");
+                            lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
+                            curr_tk = lex.getNextToken();
+                            break;
                         }
+                    }
+                    while(curr_tk == Token::Ident || getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::While || getKeyword(lex.getText()) == Keyword::Return || getKeyword(lex.getText()) == Keyword::Print || getKeyword(lex.getText()) == Keyword::Read){
+                        stmt();
+                    }
                     if(curr_tk == Token::CloseCurly){
                         curr_tk = lex.getNextToken();
                     }else{
                         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-                                    ": Expected '}', but found '"
-                                    + lex.getText() + "'");
+                                        ": Expected '}', but found '"
+                                        + lex.getText() + "'");
                     }
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
@@ -263,6 +256,10 @@ void Parser::method_decl()
                                 ": Expected '(', but found '"
                                 + lex.getText() + "'");
         }
+    }else{
+        throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected IDENTIFIER, but found '"
+                                + lex.getText() + "'");
     }
 }
 
@@ -279,7 +276,7 @@ void Parser::method_type()
 
 void Parser::opt_param_decl_list()
 {
-    if(getKeyword(lex.getText()) == Keyword::Ref){
+    if(getKeyword(lex.getText()) == Keyword::Ref || getKeyword(lex.getText()) == Keyword::Int){
         param_decl();
         while(curr_tk == Token::Comma){
             curr_tk = lex.getNextToken();
@@ -334,7 +331,6 @@ void Parser::stmt()
         }else{
             lex.ungetTokens({tokenAhead2, tokenAhead1});
             curr_tk = lex.getNextToken();
-            //std::cout << "Assign" << lex.getText()<< std::endl;
             assign_stmt();
         }
     }else if(getKeyword(lex.getText()) == Keyword::If){
@@ -363,6 +359,21 @@ void Parser::assign_stmt()
             expression();
             if(curr_tk == Token::CloseBracket){
                 curr_tk = lex.getNextToken();
+                if(curr_tk == Token::OpAssign){
+                curr_tk = lex.getNextToken();
+                expression();
+                if(curr_tk == Token::Semicolon){
+                    curr_tk = lex.getNextToken();
+                }else{
+                    throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected ';', but found '"
+                                + lex.getText() + "'");
+                }
+            }else{
+                throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected '=', but found '"
+                                + lex.getText() + "'");
+            }
             }else{
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ']', but found '"
@@ -461,7 +472,6 @@ void Parser::block()
 
 void Parser::while_stmt()
 {
-    std::cout << "While" << std::endl;
     if(getKeyword(lex.getText()) == Keyword::While){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
@@ -536,8 +546,26 @@ void Parser::print_stmt()
             if(curr_tk == Token::IntConst || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                                           || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
                 expression();
-            }else {
-                /*AGREGAR PARTE DEL STRING LITERAL*/
+            }else if(curr_tk == Token::StringLiteral){
+                curr_tk = lex.getNextToken();
+            }else{
+                throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected INT CONST, IDENTIFIER, '(', '+', '-', STRING LITERAL but found '"
+                                + lex.getText() + "'");
+            }
+            if(curr_tk == Token::ClosePar){
+                curr_tk = lex.getNextToken();
+                if(curr_tk == Token::Semicolon){
+                    curr_tk = lex.getNextToken();
+                }else{
+                    throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected ';', but found '"
+                                + lex.getText() + "'");
+                }
+            }else{
+                throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected ')', but found '"
+                                + lex.getText() + "'");
             }
         }else{
             throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +

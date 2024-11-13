@@ -1,5 +1,5 @@
 class Sorter {
-    void bubbleSort(int arr[5]) {
+    void bubbleSort(int[5] arr) {
         int i, j, temp;
         i = 0;
         while (i < 5) {
@@ -16,7 +16,7 @@ class Sorter {
         }
     }
 
-    void printArray(int arr[5]) {
+    void printArray(int[5] arr) {
         int i;
         i = 0;
         while (i < 5) {

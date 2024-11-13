@@ -1,5 +1,5 @@
 class ArrayMaxFinder {
-    int findMax(int arr[5]) {
+    int findMax(int[5] arr) {
         int max, i;
         max = arr[0];
         i = 1;
