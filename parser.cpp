@@ -172,8 +172,8 @@ void Parser::type()
         //std::cout << "Type: " << Lexer::tokenToString(curr_tk) << lex.getText()<< std::endl;
         if(curr_tk == Token::OpenBracket){
             curr_tk = lex.getNextToken();
-            if(curr_tk == Token::IntConst){
-                curr_tk = lex.getNextToken();
+            if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
+                constant();
                 //std::cout << "Type: " << lex.getText() << std::endl;
                 if(curr_tk == Token::CloseBracket){
                     curr_tk = lex.getNextToken();
@@ -184,7 +184,7 @@ void Parser::type()
                 }
             }else{
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-               /*modificar para hexa*/                 ": Expected INT CONST, but found '"
+                                         ": Expected Keyword INT, but found '"
                                 + lex.getText() + "'");
             }
             
@@ -192,6 +192,17 @@ void Parser::type()
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected 'int', but found '"
+                                + lex.getText() + "'");
+    }
+}
+
+void Parser::constant()
+{
+    if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
+        curr_tk = lex.getNextToken();
+    }else{
+        throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                ": Expected INTCONST, HEXCONST, BINARY, but found '"
                                 + lex.getText() + "'");
     }
 }
@@ -503,7 +514,7 @@ void Parser::call_stmt()
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            while(curr_tk == Token::IntConst || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
+            while(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                     || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){ 
                 expression();
                 while(curr_tk == Token::Comma){
@@ -543,7 +554,7 @@ void Parser::print_stmt()
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            if(curr_tk == Token::IntConst || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
+            if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                                           || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
                 expression();
             }else if(curr_tk == Token::StringLiteral){
@@ -643,7 +654,7 @@ void Parser::boolean_term()
 
 void Parser::boolean_factor()
 {
-    if(curr_tk == Token::IntConst || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
+    if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                                           || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
         relational_expression();
     }else if(curr_tk == Token::OpBoolNot){
@@ -698,8 +709,8 @@ void Parser::factor()
 
 void Parser::primary()
 {
-    if(curr_tk == Token::IntConst){
-        curr_tk = lex.getNextToken();
+    if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
+        constant();
     }else if(curr_tk == Token::Ident){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenBracket){
@@ -714,7 +725,7 @@ void Parser::primary()
             }
         }else if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            if(curr_tk == Token::IntConst || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
+            if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                                           || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
                 expression();
                 while(curr_tk == Token::Comma){

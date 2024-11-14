@@ -53,6 +53,7 @@ private:
     void term();
     void factor();
     void primary();
+    void constant();
 
 private:
     Lexer& lex;

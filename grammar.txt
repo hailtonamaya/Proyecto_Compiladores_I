@@ -4,7 +4,8 @@ program -> KW_CLASS IDENTIFIER OPEN_CURLY
           CLOSE_CURLY
 
 variable_decl -> type IDENTIFIER ( COMMA IDENTIFIER )* SEMICOLON
-type -> KW_INT [ OPEN_BRACKET CONSTANT CLOSE_BRACKET ]
+type -> KW_INT [ OPEN_BRACKET constant CLOSE_BRACKET ]
+constant -> INT_CONST | HEXCONST | BINARY
 
 method_decl -> method_type IDENTIFIER OPEN_PAR opt_param_decl_list CLOSE_PAR
                 OPEN_CURLY
@@ -71,7 +72,7 @@ term -> factor ( ( OP_MUL | OP_DIV | OP_MOD ) factor )*
 
 factor -> [OP_ADD | OP_SUB] primary
 
-primary ->  INT_CONST
+primary ->  constant
           | IDENTIFIER
           | IDENTIFIER OPEN_BRACKET expression CLOSE_BRACKET
           | IDENTIFIER OPEN_PAR [ expresion ( COMMA expression )* ] CLOSE_PAR
