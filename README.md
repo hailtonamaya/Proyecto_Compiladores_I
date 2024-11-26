@@ -6,4 +6,4 @@ To run the project you need:
 
 2.-  cmake --build build
 
-3.-  ./build/Parser <sampleText>
+3.-  ./build/Parser "sampleText"
