@@ -41,7 +41,7 @@ block -> OPEN_CURLY
             ( stmt )*
          CLOSE_CURLY
 
-while_stmt -> KW_WHILE OPEN_PAR expressionession CLOSE_PAR
+while_stmt -> KW_WHILE OPEN_PAR expression CLOSE_PAR
                 block
 
 call_stmt -> IDENTIFIER OPEN_PAR [ expression ( COMMA expression )* ] CLOSE_PAR SEMICOLON

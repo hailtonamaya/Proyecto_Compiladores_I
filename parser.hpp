@@ -2,9 +2,9 @@
 #define _PARSER_H
 
 #include "lexer.hpp"
-/*AGREGAR VARIABLES HEXADECIMALES, DECIMAL,
-MODIFICAR PARTE DE CONSTANT DE LA GRAMATICA,
-MODIFICAR EL AUTOMATA*/
+#include "Ast.hpp"
+
+
 enum class Keyword{
    Class,
    Int,
@@ -24,36 +24,36 @@ class Parser
 public:
     Parser(Lexer& lex): lex(lex){}
     Keyword getKeyword(const std::string& txt);
-    void parse();
+    AstNode *parse();
     void updateText(Keyword kw);
 
 private:
-    void program();
-    void variable_decl();
-    void type();
-    void method_decl();
-    void method_type();
-    void opt_param_decl_list();
-    void param_decl();
-    void stmt();
-    void assign_stmt();
-    void return_stmt();
-    void if_stmt();
-    void block();
-    void while_stmt();
-    void call_stmt();
-    void print_stmt();
-    void read_stmt();
-    void expression();
-    void boolean_expression();
-    void boolean_term();
-    void boolean_factor();
-    void relational_expression();
-    void arithmetic_expression();
-    void term();
-    void factor();
-    void primary();
-    void constant();
+    AstNode *program();
+    AstNode *variable_decl();
+    AstNode *type();
+    AstNode *method_decl();
+    AstNode *method_type();
+    std::vector<AstNode*> opt_param_decl_list();
+    AstNode *param_decl();
+    AstNode *stmt();
+    AstNode *assign_stmt();
+    AstNode *return_stmt();
+    AstNode *if_stmt();
+    std::vector<AstNode*> block();
+    AstNode *while_stmt();
+    AstNode *call_stmt();
+    AstNode *print_stmt();
+    AstNode *read_stmt();
+    AstNode *expression();
+    std::vector<AstNode*> boolean_expression();
+    AstNode *boolean_term();
+    AstNode *boolean_factor();
+    AstNode *relational_expression();
+    AstNode *arithmetic_expression();
+    AstNode *term();
+    AstNode *factor();
+    AstNode *primary();
+    AstNode *constant();
 
 private:
     Lexer& lex;

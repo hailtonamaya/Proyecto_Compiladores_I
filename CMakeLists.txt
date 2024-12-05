@@ -16,6 +16,7 @@ add_custom_command (
 
 add_executable(${PROJECT_NAME}  lexer.cpp
                                 parser.cpp
+                                Ast.cpp
                                 main.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})

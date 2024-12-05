@@ -66,21 +66,26 @@ void Parser::updateText(Keyword kw)
     }
 }
 
-void Parser::parse()
+AstNode* Parser::parse()
 {
     curr_tk = lex.getNextToken();
-    program();
+    AstNode* progr = program();
     if (curr_tk != Token::Eof) {
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                  ": Invalid expression");
     }
+    return progr;
 }
 
-void Parser::program()
+AstNode* Parser::program()
 {
+    std::vector<AstNode*> variableDecls;
+    std::vector<AstNode*> methodDecls;
+    std::string prgName;
     if(getKeyword(lex.getText()) == Keyword::Class){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::Ident){
+            prgName = lex.getText();
             curr_tk = lex.getNextToken();
             if(curr_tk == Token::OpenCurly){
                 curr_tk = lex.getNextToken();
@@ -91,16 +96,16 @@ void Parser::program()
 
                         tokenAhead2.tk = lex.getNextToken();
                         std::string tokenAhead2Text = lex.getText();  // Guardar texto en una variable temporal
-                        tokenAhead2.text = tokenAhead1Text;
+                        tokenAhead2.text = tokenAhead2Text;
 
                         tokenAhead3.tk = lex.getNextToken();
                         std::string tokenAhead3Text = lex.getText();  // Guardar texto en una variable temporal
-                        tokenAhead3.text = tokenAhead1Text;
-                        //std::cout << lex.getText() << std::endl;
+                        tokenAhead3.text = tokenAhead2Text;
+                        //std::cout << tokenAhead3 << std::endl;
                     if(lex.getText() != "("){
                         lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
                         curr_tk = lex.getNextToken();
-                        variable_decl();
+                        variableDecls.push_back(variable_decl());
                     }else{
                         lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
                         curr_tk = lex.getNextToken();
@@ -108,10 +113,11 @@ void Parser::program()
                     }
                 }
                 while(getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::Void){
-                    method_decl();
+                    methodDecls.push_back(method_decl());
                 }
                 if(curr_tk == Token::CloseCurly){
                     curr_tk = lex.getNextToken();
+                    return new ProgramNode(prgName, variableDecls, methodDecls);
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected '}', but found '"
@@ -134,14 +140,24 @@ void Parser::program()
     }
 }
 
-void Parser::variable_decl()
+AstNode* Parser::variable_decl()
 {
-    type();
+    AstNode* variabletype = type();
+    std::vector<std::string> ids;
+    std::string id;
     if(curr_tk == Token::Ident){
+        id = lex.getText();
+        // std::cout<< "ID1: " << id << std::endl;
+        ids.push_back(id);
         curr_tk = lex.getNextToken();
+        // std::cout << "SiguienteID1:" << lex.getText() << std::endl;
         while(curr_tk == Token::Comma){
             curr_tk = lex.getNextToken();
             if(curr_tk == Token::Ident){
+                id = lex.getText();
+                // std::cout<< "ID2: " << id << std::endl;
+
+                ids.push_back(id);
                 curr_tk = lex.getNextToken();
             }else{
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
@@ -151,7 +167,7 @@ void Parser::variable_decl()
         }
         if(curr_tk == Token::Semicolon){
             curr_tk = lex.getNextToken();
-            //std::cout << lex.getText() << std::endl;
+            return new VariableDeclNode(variabletype, ids);
         }else{
             throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -164,19 +180,21 @@ void Parser::variable_decl()
     }
 }
 
-void Parser::type()
-{
-    //sstd::cout << "Type: " << Lexer::tokenToString(curr_tk) << lex.getText()<< std::endl;
+AstNode* Parser::type()
+{   
+    std::string type;
     if(getKeyword(lex.getText()) == Keyword::Int){
         curr_tk = lex.getNextToken();
-        //std::cout << "Type: " << Lexer::tokenToString(curr_tk) << lex.getText()<< std::endl;
+        type = "int";
         if(curr_tk == Token::OpenBracket){
+            type.clear();
             curr_tk = lex.getNextToken();
             if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
                 constant();
-                //std::cout << "Type: " << lex.getText() << std::endl;
+                type = "int[]";
                 if(curr_tk == Token::CloseBracket){
                     curr_tk = lex.getNextToken();
+                    return new TypeNode(type);
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                     ": Expected ']', but found '"
@@ -189,6 +207,7 @@ void Parser::type()
             }
             
         }
+        return new TypeNode(type);
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected 'int', but found '"
@@ -196,10 +215,12 @@ void Parser::type()
     }
 }
 
-void Parser::constant()
+AstNode* Parser::constant()
 {
+    std::string value;
     if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
         curr_tk = lex.getNextToken();
+        return new Constant(lex.getText());
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected INTCONST, HEXCONST, BINARY, but found '"
@@ -207,14 +228,17 @@ void Parser::constant()
     }
 }
 
-void Parser::method_decl()
+AstNode* Parser::method_decl()
 {
-    method_type();
+    AstNode* mtype = method_type();
+    std::string id;
+    std::vector<AstNode*> params, variableDecls, stmts;
     if(curr_tk == Token::Ident){
+        id = lex.getText();
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            opt_param_decl_list();
+            params = opt_param_decl_list();
             if(curr_tk == Token::ClosePar){
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::OpenCurly){
@@ -226,16 +250,15 @@ void Parser::method_decl()
 
                         tokenAhead2.tk = lex.getNextToken();
                         std::string tokenAhead2Text = lex.getText();  // Guardar texto en una variable temporal
-                        tokenAhead2.text = tokenAhead1Text;
+                        tokenAhead2.text = tokenAhead2Text;
 
                         tokenAhead3.tk = lex.getNextToken();
                         std::string tokenAhead3Text = lex.getText();  // Guardar texto en una variable temporal
-                        tokenAhead3.text = tokenAhead1Text;
-                        //std::cout << lex.getText() << std::endl;
+                        tokenAhead3.text = tokenAhead3Text;
                         if(lex.getText() != "("){
                             lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
                             curr_tk = lex.getNextToken();
-                            variable_decl();
+                            variableDecls.push_back(variable_decl());
                         }else{
                             lex.ungetTokens({tokenAhead3, tokenAhead2, tokenAhead1});
                             curr_tk = lex.getNextToken();
@@ -243,10 +266,11 @@ void Parser::method_decl()
                         }
                     }
                     while(curr_tk == Token::Ident || getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::While || getKeyword(lex.getText()) == Keyword::Return || getKeyword(lex.getText()) == Keyword::Print || getKeyword(lex.getText()) == Keyword::Read){
-                        stmt();
+                        stmts.push_back(stmt());
                     }
                     if(curr_tk == Token::CloseCurly){
                         curr_tk = lex.getNextToken();
+                        return new MethodDeclNode(mtype, id, params, variableDecls, stmts);
                     }else{
                         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                         ": Expected '}', but found '"
@@ -274,10 +298,13 @@ void Parser::method_decl()
     }
 }
 
-void Parser::method_type()
+AstNode* Parser::method_type()
 {
+    std::string type;
     if(getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::Void){
+        type = lex.getText();
         curr_tk = lex.getNextToken();
+        return new TypeNode(type);
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected 'int' or 'void', but found '"
@@ -285,33 +312,44 @@ void Parser::method_type()
     }
 }
 
-void Parser::opt_param_decl_list()
+std::vector<AstNode*> Parser::opt_param_decl_list()
 {
+    std::vector<AstNode*> paramDecls;
     if(getKeyword(lex.getText()) == Keyword::Ref || getKeyword(lex.getText()) == Keyword::Int){
-        param_decl();
+        paramDecls.push_back(param_decl());
         while(curr_tk == Token::Comma){
             curr_tk = lex.getNextToken();
-            param_decl();
+            paramDecls.push_back(param_decl());
         }
     }
+    return paramDecls;
 }
 
-void Parser::param_decl()
+AstNode* Parser::param_decl()
 {
+    bool isReference;
+    std::string name;
+    AstNode* Ptype;
     if(getKeyword(lex.getText()) == Keyword::Ref){
         curr_tk = lex.getNextToken();
-        type();
+        isReference = true;
+        Ptype = type();
         if(curr_tk == Token::Ident){
+            name = lex.getText();
             curr_tk = lex.getNextToken();
+            return new ParamDeclNode(isReference, Ptype, name);
         }else{
             throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected IDENTIFIER, but found '"
                                 + lex.getText() + "'");
         }
    }else{
-        type();
+        isReference = false;
+        Ptype = type();
         if(curr_tk == Token::Ident){
+            name = lex.getText();
             curr_tk = lex.getNextToken();
+            return new ParamDeclNode(isReference, Ptype, name);
         }else{
             throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected IDENTIFIER, but found '"
@@ -320,8 +358,9 @@ void Parser::param_decl()
    }
 }
 
-void Parser::stmt()
+AstNode* Parser::stmt()
 {
+    AstNode *stmt;
     if(curr_tk == Token::Ident && lex.getText() != "if" && lex.getText() != "while" && lex.getText() != "return" && lex.getText() != "print" && lex.getText() != "read"){
         tokenAhead1.tk = curr_tk;
         std::string tokenAhead1Text = lex.getText();  
@@ -330,51 +369,57 @@ void Parser::stmt()
         tokenAhead2.tk = lex.getNextToken();
         std::string tokenAhead2Text = lex.getText();  
         tokenAhead2.text = tokenAhead2Text;
-        //std::cout << "Token1" << tokenAhead1.text  << std::endl;
 
-        //std::cout << "Token2" <<tokenAhead2.text  << std::endl;
 
         if(lex.getText() == "("){
             lex.ungetTokens({tokenAhead2, tokenAhead1});
             curr_tk = lex.getNextToken();
-            //std::cout << "Call" << lex.getText()<<std::endl;
-            call_stmt();
+            stmt = call_stmt();
         }else{
             lex.ungetTokens({tokenAhead2, tokenAhead1});
             curr_tk = lex.getNextToken();
-            assign_stmt();
+            stmt = assign_stmt();
         }
     }else if(getKeyword(lex.getText()) == Keyword::If){
-        if_stmt();
+        stmt = if_stmt();
     }else if(getKeyword(lex.getText()) == Keyword::While){
-        while_stmt();
+        stmt = while_stmt();
     }else if(getKeyword(lex.getText()) == Keyword::Return){
-        return_stmt();
+        stmt = return_stmt();
     }else if(getKeyword(lex.getText()) == Keyword::Print){
-        print_stmt();
+        stmt = print_stmt();
     }else if(getKeyword(lex.getText()) == Keyword::Read){
-        read_stmt();
+        stmt = read_stmt();
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected IDENTIFIER, 'if', 'while', 'return', 'print' or 'read', but found '"
                                 + lex.getText() + "'");
     }
+    return stmt;
 }
 
-void Parser::assign_stmt()
+AstNode* Parser::assign_stmt()
 {   
+    std::string id;
+    AstNode *indexExpr = nullptr;
+    AstNode *value = nullptr;
+    AstNode *assign_stmt = nullptr;
+    
     if(curr_tk == Token::Ident){
+        id = lex.getText();
         curr_tk = lex.getNextToken();
         if(curr_tk ==Token::OpenBracket){
             curr_tk = lex.getNextToken();
-            expression();
+            indexExpr = expression();
+            //TODO:arreglar parte de arreglos
             if(curr_tk == Token::CloseBracket){
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::OpAssign){
                 curr_tk = lex.getNextToken();
-                expression();
+                value = expression();
                 if(curr_tk == Token::Semicolon){
                     curr_tk = lex.getNextToken();
+                    assign_stmt = new AssignStmt(id, indexExpr, value);
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -393,9 +438,10 @@ void Parser::assign_stmt()
         }else{
             if(curr_tk == Token::OpAssign){
                 curr_tk = lex.getNextToken();
-                expression();
+                value = expression();
                 if(curr_tk == Token::Semicolon){
                     curr_tk = lex.getNextToken();
+                    assign_stmt = new AssignStmt(id, indexExpr, value);
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -408,15 +454,19 @@ void Parser::assign_stmt()
             }
         }
     }
+    return assign_stmt;
+
 }
 
-void Parser::return_stmt()
+AstNode* Parser::return_stmt()
 {
+    AstNode *return_stmt;
     if(getKeyword(lex.getText()) == Keyword::Return){
         curr_tk = lex.getNextToken();
-        expression();
+        return_stmt = expression();
         if(curr_tk == Token::Semicolon){
             curr_tk = lex.getNextToken();
+            return new ReturnStmt(return_stmt);
         }else{
             throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -429,20 +479,23 @@ void Parser::return_stmt()
     }
 }
 
-void Parser::if_stmt()
+AstNode* Parser::if_stmt()
 {
+    AstNode *condition;
+    std::vector<AstNode*> stmts, elseStmts;
     if(getKeyword(lex.getText()) == Keyword::If){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            expression();
+            condition = expression();
             if(curr_tk == Token::ClosePar){
                 curr_tk = lex.getNextToken();
-                block();
+                stmts = block();
                 if(getKeyword(lex.getText()) == Keyword::Else){
                     curr_tk = lex.getNextToken();
-                    block();
+                    elseStmts = block();
                 }
+                return new IfStmt(condition, stmts, elseStmts);
             }else{
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ')', but found '"
@@ -460,15 +513,17 @@ void Parser::if_stmt()
     }
 }
 
-void Parser::block()
+std::vector<AstNode*> Parser::block()
 {
+    std::vector<AstNode*> stmts;
     if(curr_tk == Token::OpenCurly){
         curr_tk = lex.getNextToken();
         while(curr_tk == Token::Ident || getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::While || getKeyword(lex.getText()) == Keyword::Return || getKeyword(lex.getText()) == Keyword::Print || getKeyword(lex.getText()) == Keyword::Read){
-            stmt();
+            stmts.push_back(stmt());
         }  
         if(curr_tk == Token::CloseCurly){
             curr_tk = lex.getNextToken();
+            return stmts;
         }else{
             throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected '}', but found '"
@@ -481,16 +536,19 @@ void Parser::block()
     }
 }
 
-void Parser::while_stmt()
+AstNode* Parser::while_stmt()
 {
+    AstNode* condition;
+    std::vector<AstNode*> stmts;
     if(getKeyword(lex.getText()) == Keyword::While){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            expression();
+            condition = expression();
             if(curr_tk == Token::ClosePar){
                 curr_tk = lex.getNextToken();
-                block();
+                stmts = block();
+                return new WhileStmt(condition, stmts);
             }else{
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ')', but found '"
@@ -508,24 +566,28 @@ void Parser::while_stmt()
     }
 }
 
-void Parser::call_stmt()
+AstNode* Parser::call_stmt()
 {
+    std::string id;
+    std::vector<AstNode*> args;
     if(curr_tk == Token::Ident){
+        id = lex.getText();
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
             while(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                     || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){ 
-                expression();
+                args.push_back(expression());
                 while(curr_tk == Token::Comma){
                     curr_tk = lex.getNextToken();
-                    expression();
+                    args.push_back(expression());
                 }
             }
             if(curr_tk == Token::ClosePar){
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::Semicolon){
                     curr_tk = lex.getNextToken();
+                    return new CallStmt(id, args);
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -548,16 +610,19 @@ void Parser::call_stmt()
     }
 }
 
-void Parser::print_stmt()
+AstNode* Parser::print_stmt()
 {
+    AstNode* printExpr;
+    std::string printStr;
     if(getKeyword(lex.getText()) == Keyword::Print){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
             if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                                           || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
-                expression();
+                printExpr = expression();
             }else if(curr_tk == Token::StringLiteral){
+                printStr = lex.getText();
                 curr_tk = lex.getNextToken();
             }else{
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
@@ -568,6 +633,7 @@ void Parser::print_stmt()
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::Semicolon){
                     curr_tk = lex.getNextToken();
+                    return new PrintStmt(printExpr, printStr);
                 }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -590,18 +656,21 @@ void Parser::print_stmt()
     }
 }
 
-void Parser::read_stmt()
+AstNode* Parser::read_stmt()
 {
+    std::string id;
     if(getKeyword(lex.getText()) == Keyword::Read){
         curr_tk = lex.getNextToken();
         if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
             if(curr_tk == Token::Ident){
+                id = lex.getText();
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::ClosePar){
                     curr_tk = lex.getNextToken();
                     if(curr_tk == Token::Semicolon){
                         curr_tk = lex.getNextToken();
+                        return new ReadStmt(id);
                     }else{
                         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected ';', but found '"
@@ -629,37 +698,44 @@ void Parser::read_stmt()
     }
 }
 
-void Parser::expression()
+AstNode* Parser::expression()
 {
-    boolean_expression();
+    return new BooleanExpr(boolean_expression());
 }
 
-void Parser::boolean_expression()
+std::vector<AstNode*> Parser::boolean_expression()
 {
-    boolean_term();
+    std::vector<AstNode*> booleanExpr;
+    booleanExpr.push_back(boolean_term());
     while(curr_tk == Token::OpBoolOr){
         curr_tk = lex.getNextToken();
-        boolean_term();
+        booleanExpr.push_back(boolean_term());
     }
+    return booleanExpr;
 }
 
-void Parser::boolean_term()
-{
-    boolean_factor();
+AstNode* Parser::boolean_term()
+{   
+    std::vector<AstNode*> booleanTerm;
+    booleanTerm.push_back(boolean_factor());
     while(curr_tk == Token::OpBoolAnd){
         curr_tk = lex.getNextToken();
-        boolean_factor();
+        booleanTerm.push_back(boolean_factor());
     }
+    return new BooleanTerm(booleanTerm);
 }
 
-void Parser::boolean_factor()
+AstNode* Parser::boolean_factor()
 {
     if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
                                           || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
-        relational_expression();
+        AstNode* relationalExpression = relational_expression();
+        return relationalExpression;
+        
     }else if(curr_tk == Token::OpBoolNot){
         curr_tk = lex.getNextToken();
-        boolean_factor();
+        AstNode* negatedFactor = boolean_factor(); // Parsea el siguiente factor
+        return new BooleanFactor(true, negatedFactor);
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected '!', INT CONST, IDENTIFIER, '(', '+', '-' but found '"
@@ -667,93 +743,123 @@ void Parser::boolean_factor()
     }
 }
 
-void Parser::relational_expression()
+AstNode* Parser::relational_expression()
 {
-    arithmetic_expression();
+    std::vector<AstNode*> ariths;
+    ariths.push_back(arithmetic_expression());
     if(curr_tk == Token::OpLessThan || curr_tk == Token::OpLessEqual || curr_tk == Token::OpGreaterThan || curr_tk == Token::OpGreaterEqual || curr_tk == Token::OpEqual || curr_tk == Token::OpNotEqual){
         curr_tk = lex.getNextToken();
-        arithmetic_expression();
+        ariths.push_back(arithmetic_expression());
     }
+    return new RelationalExpr(ariths);
 }
 
-void Parser::arithmetic_expression()
+AstNode* Parser::arithmetic_expression()
 {
-    term();
+    std::vector<AstNode*> termss;
+    termss.push_back(term());
     while(curr_tk == Token::OpAdd || curr_tk == Token::OpSub){
         curr_tk = lex.getNextToken();
-        term();
+            termss.push_back(term
+            ());
+
     }
+    return new ArithmeticExpr(termss);
 }
 
-void Parser::term()
+AstNode* Parser::term()
 {
-    factor();
+    std::vector<AstNode*> factors;
+    factors.push_back(factor());
     while(curr_tk == Token::OpMul || curr_tk == Token::OpDiv || curr_tk == Token::OpMod){
         curr_tk = lex.getNextToken();
-        factor();
+        factors.push_back(factor());
     }
+    return new Term(factors);
 }
 
-void Parser::factor()
+AstNode* Parser::factor()
 {
+    AstNode* primarys;
+    bool isNegated = false;
     if(curr_tk == Token::OpAdd){
         curr_tk = lex.getNextToken();
-        primary();
+        primarys = primary();
     }else if(curr_tk == Token::OpSub){
         curr_tk = lex.getNextToken();
-        primary();
+        primarys = primary();
+        isNegated = true;
     }else{
-        primary();
+        primarys = primary();
     }
+    return new Factor(primarys, isNegated);
 }
 
-void Parser::primary()
-{
-    if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
-        constant();
-    }else if(curr_tk == Token::Ident){
+AstNode* Parser::primary() {
+    if (curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary) {
+        // Caso: constante
+        AstNode* constantNode = constant(); // Genera el nodo de constante
+        return new PrimaryNode(constantNode);
+
+    } else if (curr_tk == Token::Ident) {
+        // Caso: identificador (variable, acceso a array, o llamada a función)
+        std::string identifier = lex.getText();
         curr_tk = lex.getNextToken();
-        if(curr_tk == Token::OpenBracket){
+
+        if (curr_tk == Token::OpenBracket) {
+            // Caso: IDENTIFIER[expression]
             curr_tk = lex.getNextToken();
-            expression();
-            if(curr_tk == Token::CloseBracket){
-                curr_tk = lex.getNextToken();
-            }else{
+            AstNode* indexExpr = expression();
+            if (curr_tk != Token::CloseBracket) {
                 throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-                                ": Expected ']', but found '"
-                                + lex.getText() + "'");
+                                         ": Expected ']', but found '" + lex.getText() + "'");
             }
-        }else if(curr_tk == Token::OpenPar){
             curr_tk = lex.getNextToken();
-            if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary || curr_tk == Token::Ident || curr_tk == Token::OpenPar 
-                                          || curr_tk == Token::OpSub || curr_tk == Token::OpAdd){
-                expression();
-                while(curr_tk == Token::Comma){
-                    curr_tk = lex.getNextToken();
-                    expression();
+            return new PrimaryNode(identifier, indexExpr);
+
+        } else if (curr_tk == Token::OpenPar) {
+            // Caso: IDENTIFIER(expression, ...)
+            curr_tk = lex.getNextToken();
+            std::vector<AstNode*> args;
+
+            if (curr_tk != Token::ClosePar) { // Si no está vacío, procesar argumentos
+                do {
+                    args.push_back(expression());
+                    if (curr_tk == Token::Comma) {
+                        curr_tk = lex.getNextToken();
+                    } else {
+                        break;
+                    }
+                } while (true);
+
+                if (curr_tk != Token::ClosePar) {
+                    throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                             ": Expected ')', but found '" + lex.getText() + "'");
                 }
             }
-            if(curr_tk == Token::ClosePar){
-                curr_tk = lex.getNextToken();
-            }else{
-                throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-                                ": Expected ')', but found '"
-                                + lex.getText() + "'");
-            }
-        }
-    }else if(curr_tk == Token::OpenPar){
-        curr_tk = lex.getNextToken();
-        expression();
-        if(curr_tk == Token::ClosePar){
             curr_tk = lex.getNextToken();
-        }else{
-            throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-                                ": Expected ')', but found '"
-                                + lex.getText() + "'");
+            return new PrimaryNode(identifier, args);
+
+        } else {
+            // Caso: IDENTIFIER (variable simple)
+            return new PrimaryNode(identifier);
         }
-    }else{
+
+    } else if (curr_tk == Token::OpenPar) {
+        // Caso: (expression)
+        curr_tk = lex.getNextToken();
+        AstNode* exprNode = expression();
+        if (curr_tk != Token::ClosePar) {
+            throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
+                                     ": Expected ')', but found '" + lex.getText() + "'");
+        }
+        curr_tk = lex.getNextToken();
+        return new PrimaryNode(exprNode, true);
+
+    } else {
+        // Error: no coincide con ninguna opción válida
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
-                                ": Expected INT CONST, IDENTIFIER, '(', but found '"
-                                + lex.getText() + "'");
+                                 ": Expected INT CONST, IDENTIFIER, '(', but found '" +
+                                 lex.getText() + "'");
     }
 }
