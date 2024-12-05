@@ -27,9 +27,20 @@ enum class NodeKind
     BooleanFactor,
     RelationalExpr,
     ArithmeticExpr,
+    ArithAddExpr,
+    ArithSubExpr,
     Term,
+    MulTerm,
+    DivTerm,
+    ModTerm,
     Factor,
-    Primary
+    Primary,
+    RelationalEqualExpr,
+    RelationalNotEqualExpr,
+    RelationalLessThanExpr,
+    RelationalLessEqualExpr,
+    RelationalGreaterThanExpr,
+    RelationalGreaterEqualExpr
 };
 
 class AstNode
@@ -83,7 +94,7 @@ class Constant: public AstNode
         std::string value;
 
         NodeKind kind() const override { return NodeKind::Constant; }
-        std::string toString() const override { return "Constant"; }
+        std::string toString() const override { return value; }
 };
 
 class MethodDeclNode: public AstNode
@@ -171,7 +182,7 @@ class WhileStmt: public AstNode
         std::vector<AstNode *> stmts;
 
         NodeKind kind() const override { return NodeKind::WhileStmt; }
-        std::string toString() const override { return "WhileStmt"; } 
+        std::string toString() const override;
 };
 
 class CallStmt: public AstNode
@@ -260,7 +271,7 @@ class BooleanExpr: public ExprNode
         std::vector<AstNode *> terms;
 
         NodeKind kind() const override { return NodeKind::BooleanExpr; }
-        std::string toString() const override { return "BooleanExpr"; }
+        std::string toString() const override;
 };
 
 class BooleanTerm: public ExprNode
@@ -273,7 +284,7 @@ class BooleanTerm: public ExprNode
         std::vector<AstNode *> factors;
 
         NodeKind kind() const override { return NodeKind::BooleanTerm; }
-        std::string toString() const override { return "BooleanTerm"; }
+        std::string toString() const override;
 };
 
 class BooleanFactor: public AstNode
@@ -287,47 +298,200 @@ class BooleanFactor: public AstNode
         AstNode *factor;
 
         NodeKind kind() const override { return NodeKind::BooleanFactor; }
-        std::string toString() const override { return "BooleanFactor"; }
+        std::string toString() const override;
 };
 
 class RelationalExpr: public AstNode
 {
     public:
-        RelationalExpr(std::vector<AstNode *> ariths)
+        RelationalExpr(AstNode * ariths)
             : ariths(ariths)
         {}
 
-        std::vector<AstNode *> ariths;
+        AstNode * ariths;
        
-
         NodeKind kind() const override { return NodeKind::RelationalExpr; }
-        std::string toString() const override { return "RelationalExpr"; }
+        std::string toString() const override;
+};
+
+class RelationalEqualExpr: public AstNode
+{
+    public:
+        RelationalEqualExpr(AstNode* leftArith, AstNode* rightArith)
+            : leftArith(leftArith), rightArith(rightArith)
+        {}
+
+        AstNode* leftArith;
+        AstNode* rightArith;
+
+        NodeKind kind() const override { return NodeKind::RelationalEqualExpr; }
+        std::string toString() const override;
+};
+
+class RelationalNotEqualExpr: public AstNode
+{
+    public:
+        RelationalNotEqualExpr(AstNode* leftArith, AstNode* rightArith)
+            : leftArith(leftArith), rightArith(rightArith)
+        {}
+
+        AstNode* leftArith;
+        AstNode* rightArith;
+
+        NodeKind kind() const override { return NodeKind::RelationalNotEqualExpr; }
+        std::string toString() const override;
+};
+
+class RelationalLessThanExpr: public AstNode
+{
+    public:
+        RelationalLessThanExpr(AstNode* leftArith, AstNode* rightArith)
+            : leftArith(leftArith), rightArith(rightArith)
+        {}
+
+        AstNode* leftArith;
+        AstNode* rightArith;
+
+        NodeKind kind() const override { return NodeKind::RelationalLessThanExpr; }
+        std::string toString() const override;
+};
+
+class RelationalLessEqualExpr: public AstNode
+{
+    public:
+        RelationalLessEqualExpr(AstNode* leftArith, AstNode* rightArith)
+            : leftArith(leftArith), rightArith(rightArith)
+        {}
+
+        AstNode* leftArith;
+        AstNode* rightArith;
+
+        NodeKind kind() const override { return NodeKind::RelationalLessEqualExpr; }
+        std::string toString() const override;
+};
+
+class RelationalGreaterThanExpr: public AstNode
+{
+    public:
+        RelationalGreaterThanExpr(AstNode* leftArith, AstNode* rightArith)
+            : leftArith(leftArith), rightArith(rightArith)
+        {}
+
+        AstNode* leftArith;
+        AstNode* rightArith;
+
+        NodeKind kind() const override { return NodeKind::RelationalGreaterThanExpr; }
+        std::string toString() const override;
+};
+
+class RelationalGreaterEqualExpr: public AstNode
+{
+    public:
+        RelationalGreaterEqualExpr(AstNode* leftArith, AstNode* rightArith)
+            : leftArith(leftArith), rightArith(rightArith)
+        {}
+
+        AstNode* leftArith;
+        AstNode* rightArith;
+
+        NodeKind kind() const override { return NodeKind::RelationalGreaterEqualExpr; }
+        std::string toString() const override;
 };
 
 class ArithmeticExpr: public ExprNode
 {
     public:
-        ArithmeticExpr(std::vector<AstNode *> terms)
+        ArithmeticExpr(std::vector<AstNode *>& terms)
             : terms(terms)
         {};
 
         std::vector<AstNode *> terms;
 
         NodeKind kind() const override { return NodeKind::ArithmeticExpr; }
-        std::string toString() const override { return "ArithmeticExpr"; }
+        std::string toString() const override;
+};
+
+class ArithAddExpr: public ExprNode
+{
+    public:
+        ArithAddExpr(AstNode* t1 , AstNode * t2)
+            : t1(t1), t2(t2)
+        {};
+
+        AstNode* t1;
+        AstNode* t2;
+
+        NodeKind kind() const override { return NodeKind::ArithAddExpr; }
+        std::string toString() const override;
+};
+
+class ArithSubExpr: public ExprNode
+{
+    public:
+        ArithSubExpr(AstNode* t1 , AstNode* t2)
+            : t1(t1), t2(t2)
+        {};
+
+        AstNode* t1;
+        AstNode* t2;
+
+        NodeKind kind() const override { return NodeKind::ArithSubExpr; }
+        std::string toString() const override;
 };
 
 class Term: public AstNode
 {
     public:
-        Term(std::vector<AstNode *> factors)
+        Term(const std::vector<AstNode *>& factors)
             : factors(factors)
         {}
 
         std::vector<AstNode *> factors;
 
         NodeKind kind() const override { return NodeKind::Term; }
-        std::string toString() const override { return "Term"; }
+        std::string toString() const override;
+};
+
+class MulTerm: public AstNode
+{
+    public:
+        MulTerm(AstNode* f1, AstNode* f2)
+            : f1(f1), f2(f2)
+        {}
+
+        AstNode* f1;
+        AstNode* f2;
+
+        NodeKind kind() const override { return NodeKind::MulTerm; }
+        std::string toString() const override;
+};
+
+class DivTerm: public AstNode
+{
+    public:
+        DivTerm(AstNode* f1, AstNode* f2)
+            : f1(f1), f2(f2)
+        {}
+
+        AstNode* f1;
+        AstNode* f2;
+
+        NodeKind kind() const override { return NodeKind::DivTerm; }
+        std::string toString() const override;
+};
+
+class ModTerm: public AstNode
+{
+    public:
+        ModTerm(AstNode* f1, AstNode* f2)
+            : f1(f1), f2(f2)
+        {}
+
+        AstNode* f1;
+        AstNode* f2;
+
+        NodeKind kind() const override { return NodeKind::ModTerm; }
+        std::string toString() const override;
 };
 
 class Factor: public AstNode
@@ -341,53 +505,44 @@ class Factor: public AstNode
         bool isNegative = false;
 
         NodeKind kind() const override { return NodeKind::Factor; }
-        std::string toString() const override { return "Factor"; }
+        std::string toString() const override;
 };
 
-class PrimaryNode : public AstNode {
-public:
-    enum class PrimaryType {
-        Constant,
-        Identifier,
-        ArrayAccess,
-        FunctionCall,
-        Expression
-    };
+class PrimaryNode: public AstNode
+{
+    public:
+        PrimaryNode(const std::vector<AstNode *>& args)
+            : args(args)
+        {}
 
-private:
-    PrimaryType type;                     // Tipo de nodo primario
-    AstNode* value;                       // Nodo asociado (constant, expression, etc.)
-    std::string identifier;               // Identificador (para variables o funciones)
-    std::vector<AstNode*> arguments;      // Lista de argumentos (para función)
-    AstNode* indexExpression;             // Índice del array (para ArrayAccess)
+        std::vector<AstNode *> args;
 
-public:
-    // Constructor para constantes
-    PrimaryNode(AstNode* constantNode)
-        : type(PrimaryType::Constant), value(constantNode), indexExpression(nullptr) {}
+        NodeKind kind() const override { return NodeKind::Primary; }
+        std::string toString() const override;
+};
 
-    // Constructor para identificadores
-    PrimaryNode(const std::string& id)
-        : type(PrimaryType::Identifier), identifier(id), value(nullptr), indexExpression(nullptr) {}
+class PrimaryConst: public AstNode
+{
+    public:
+        PrimaryConst(AstNode* value)
+            : value(value)
+        {}
 
-    // Constructor para acceso a arrays
-    PrimaryNode(const std::string& id, AstNode* indexExpr)
-        : type(PrimaryType::ArrayAccess), identifier(id), indexExpression(indexExpr) {}
+        AstNode* value;
 
-    // Constructor para llamadas a funciones
-    PrimaryNode(const std::string& id, const std::vector<AstNode*>& args)
-        : type(PrimaryType::FunctionCall), identifier(id), arguments(args) {}
+        NodeKind kind() const override { return NodeKind::Constant; }
+        std::string toString() const override;
+};
 
-    // Constructor para expresiones entre paréntesis
-    PrimaryNode(AstNode* exprNode, bool isExpression)
-        : type(PrimaryType::Expression), value(exprNode), indexExpression(nullptr) {}
+class PrimaryIdentifier: public AstNode
+{
+    public:
+        PrimaryIdentifier(std::string identifier)
+            : identifier(identifier)
+        {}
 
-    PrimaryType getType() const { return type; }
-    const std::string& getIdentifier() const { return identifier; }
-    const std::vector<AstNode*>& getArguments() const { return arguments; }
-    AstNode* getIndexExpression() const { return indexExpression; }
-    AstNode* getValue() const { return value; }
+        std::string identifier;
 
-    NodeKind kind() const override { return NodeKind::Primary; }
-    std::string toString() const override { return "PrimaryNode"; }
+        NodeKind kind() const override { return NodeKind::Primary; }
+        std::string toString() const override {return identifier;};
 };

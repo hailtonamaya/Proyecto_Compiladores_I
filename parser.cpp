@@ -219,8 +219,9 @@ AstNode* Parser::constant()
 {
     std::string value;
     if(curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary){
+        value = lex.getText();
         curr_tk = lex.getNextToken();
-        return new Constant(lex.getText());
+        return new Constant(value);
     }else{
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                 ": Expected INTCONST, HEXCONST, BINARY, but found '"
@@ -745,35 +746,77 @@ AstNode* Parser::boolean_factor()
 
 AstNode* Parser::relational_expression()
 {
-    std::vector<AstNode*> ariths;
-    ariths.push_back(arithmetic_expression());
-    if(curr_tk == Token::OpLessThan || curr_tk == Token::OpLessEqual || curr_tk == Token::OpGreaterThan || curr_tk == Token::OpGreaterEqual || curr_tk == Token::OpEqual || curr_tk == Token::OpNotEqual){
+    AstNode* left = arithmetic_expression();
+    if(curr_tk == Token::OpEqual){
         curr_tk = lex.getNextToken();
-        ariths.push_back(arithmetic_expression());
+        AstNode* right = arithmetic_expression();
+        return new RelationalEqualExpr(left, right);
+    }else if(curr_tk == Token::OpLessThan){
+        curr_tk = lex.getNextToken();
+        AstNode* right = arithmetic_expression();
+        return new RelationalLessThanExpr(left, right);
+    }else if(curr_tk == Token::OpLessEqual){
+        curr_tk = lex.getNextToken();
+        AstNode* right = arithmetic_expression();
+        return new RelationalLessEqualExpr(left, right);
+    } else if(curr_tk == Token::OpGreaterThan){
+        curr_tk = lex.getNextToken();
+        AstNode* right = arithmetic_expression();
+        return new RelationalGreaterThanExpr(left, right);
+    } else if(curr_tk == Token::OpGreaterEqual){
+        curr_tk = lex.getNextToken();
+        AstNode* right = arithmetic_expression();
+        return new RelationalGreaterEqualExpr(left, right);
+    } else if(curr_tk == Token::OpNotEqual){
+        curr_tk = lex.getNextToken();
+        AstNode* right = arithmetic_expression();
+        return new RelationalNotEqualExpr(left, right);
     }
-    return new RelationalExpr(ariths);
+    return new RelationalExpr(left);
 }
 
 AstNode* Parser::arithmetic_expression()
 {
-    std::vector<AstNode*> termss;
-    termss.push_back(term());
+    AstNode *t1 = term();
+    std::vector<AstNode*> terms;
     while(curr_tk == Token::OpAdd || curr_tk == Token::OpSub){
-        curr_tk = lex.getNextToken();
-            termss.push_back(term
-            ());
-
+        if(curr_tk == Token::OpAdd){
+            curr_tk = lex.getNextToken();
+            AstNode *t2 = term();
+            terms.push_back(new ArithAddExpr(t1, t2));
+        }else if(curr_tk == Token::OpSub){
+            curr_tk = lex.getNextToken();
+            AstNode *t2 = term();
+            terms.push_back(new ArithSubExpr(t1, t2));
+        }
     }
-    return new ArithmeticExpr(termss);
+    if(terms.size() == 0){
+        terms.push_back(t1);
+    }
+    return new ArithmeticExpr(terms);
 }
 
 AstNode* Parser::term()
 {
+    AstNode *f1 = factor();
     std::vector<AstNode*> factors;
-    factors.push_back(factor());
     while(curr_tk == Token::OpMul || curr_tk == Token::OpDiv || curr_tk == Token::OpMod){
-        curr_tk = lex.getNextToken();
-        factors.push_back(factor());
+        if(curr_tk == Token::OpMul){
+            curr_tk = lex.getNextToken();
+            AstNode *f2 = factor();
+            factors.push_back(new MulTerm(f1, f2));
+        }else if(curr_tk == Token::OpDiv){
+            curr_tk = lex.getNextToken();
+            AstNode *f2 = factor();
+            factors.push_back(new DivTerm(f1, f2));
+        }else if(curr_tk == Token::OpMod){
+            curr_tk = lex.getNextToken();
+            AstNode *f2 = factor();
+            factors.push_back(new ModTerm(f1, f2));
+        }
+    }
+    if(factors.size() == 0){
+        factors.push_back(f1);
     }
     return new Term(factors);
 }
@@ -796,10 +839,11 @@ AstNode* Parser::factor()
 }
 
 AstNode* Parser::primary() {
+    std::vector<AstNode*> args;
     if (curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary) {
         // Caso: constante
         AstNode* constantNode = constant(); // Genera el nodo de constante
-        return new PrimaryNode(constantNode);
+        args.push_back(new PrimaryConst(constantNode));
 
     } else if (curr_tk == Token::Ident) {
         // Caso: identificador (variable, acceso a array, o llamada a función)
@@ -815,7 +859,7 @@ AstNode* Parser::primary() {
                                          ": Expected ']', but found '" + lex.getText() + "'");
             }
             curr_tk = lex.getNextToken();
-            return new PrimaryNode(identifier, indexExpr);
+            // return new PrimaryNode(identifier, indexExpr);
 
         } else if (curr_tk == Token::OpenPar) {
             // Caso: IDENTIFIER(expression, ...)
@@ -838,11 +882,11 @@ AstNode* Parser::primary() {
                 }
             }
             curr_tk = lex.getNextToken();
-            return new PrimaryNode(identifier, args);
+            // return new PrimaryNode(identifier, args);
 
         } else {
             // Caso: IDENTIFIER (variable simple)
-            return new PrimaryNode(identifier);
+            args.push_back(new PrimaryIdentifier(identifier));
         }
 
     } else if (curr_tk == Token::OpenPar) {
@@ -854,7 +898,7 @@ AstNode* Parser::primary() {
                                      ": Expected ')', but found '" + lex.getText() + "'");
         }
         curr_tk = lex.getNextToken();
-        return new PrimaryNode(exprNode, true);
+        // return new PrimaryNode(exprNode, true);
 
     } else {
         // Error: no coincide con ninguna opción válida
@@ -862,4 +906,5 @@ AstNode* Parser::primary() {
                                  ": Expected INT CONST, IDENTIFIER, '(', but found '" +
                                  lex.getText() + "'");
     }
+    return new PrimaryNode(args);
 }
