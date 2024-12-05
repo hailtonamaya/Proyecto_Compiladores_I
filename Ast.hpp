@@ -130,7 +130,7 @@ class AssignStmt: public AstNode
         AstNode *value;
 
         NodeKind kind() const override { return NodeKind::AssignStmt; }
-        std::string toString() const override { return "AssignStmt"; }
+        std::string toString() const override;
 };
 
 class ReturnStmt: public AstNode

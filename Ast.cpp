@@ -52,3 +52,14 @@ std::string MethodDeclNode::toString() const
     result += '\n';
     return result;
 }
+
+std::string AssignStmt::toString() const
+{
+    std::string result;
+    if(indexExpr != nullptr){
+        result += identifier + "[" + indexExpr->toString() + "] =" + value->toString();
+    }else{
+        result += identifier + " = " + value->toString();
+    }
+    return result;
+}
