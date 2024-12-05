@@ -3,6 +3,7 @@
 #include <fstream>
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "ExprEvaluator.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -25,9 +26,9 @@ int main(int argc, char* argv[])
 
     try {
         AstNode *root = parser.parse();
-        //ExprEvaluator expr_eval({{"x",10 }, {"y",345}, {"a",20}, {"b",5}});
+        ExprEvaluator expr_eval;
         std::cout << root->toString() << "\n";
-        //std::cout << "Value:" << expr_eval.evaluate(root) << "\n";
+        std::cout << expr_eval.evaluate(root) << "\n";
     } catch (const std::runtime_error& err) {
         std::cerr << err.what() << '\n';
     }

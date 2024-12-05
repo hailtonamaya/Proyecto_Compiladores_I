@@ -262,7 +262,7 @@ class ExprNode: public AstNode
 class BooleanExpr: public ExprNode
 {
     public:
-        BooleanExpr(std::vector<AstNode *> terms)
+        BooleanExpr(const std::vector<AstNode *>& terms)
             : terms(terms){};
         
 
@@ -275,7 +275,7 @@ class BooleanExpr: public ExprNode
 class BooleanTerm: public ExprNode
 {
     public:
-        BooleanTerm(std::vector<AstNode *> factors)
+        BooleanTerm(const std::vector<AstNode *>& factors)
             : factors(factors)
         {}
 
@@ -399,7 +399,7 @@ class RelationalGreaterEqualExpr: public AstNode
 class ArithmeticExpr: public ExprNode
 {
     public:
-        ArithmeticExpr(std::vector<AstNode *>& terms)
+        ArithmeticExpr(const std::vector<AstNode *>& terms)
             : terms(terms)
         {};
 
