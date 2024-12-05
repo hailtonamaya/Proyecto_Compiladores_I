@@ -613,7 +613,7 @@ AstNode* Parser::call_stmt()
 
 AstNode* Parser::print_stmt()
 {
-    AstNode* printExpr;
+    AstNode* printExpr = nullptr;
     std::string printStr;
     if(getKeyword(lex.getText()) == Keyword::Print){
         curr_tk = lex.getNextToken();
@@ -859,16 +859,16 @@ AstNode* Parser::primary() {
                                          ": Expected ']', but found '" + lex.getText() + "'");
             }
             curr_tk = lex.getNextToken();
-            // return new PrimaryNode(identifier, indexExpr);
+            args.push_back(new PrimaryArray(identifier, indexExpr));
 
         } else if (curr_tk == Token::OpenPar) {
             // Caso: IDENTIFIER(expression, ...)
             curr_tk = lex.getNextToken();
-            std::vector<AstNode*> args;
+            std::vector<AstNode*> params;
 
             if (curr_tk != Token::ClosePar) { // Si no está vacío, procesar argumentos
                 do {
-                    args.push_back(expression());
+                    params.push_back(expression());
                     if (curr_tk == Token::Comma) {
                         curr_tk = lex.getNextToken();
                     } else {
@@ -882,7 +882,7 @@ AstNode* Parser::primary() {
                 }
             }
             curr_tk = lex.getNextToken();
-            // return new PrimaryNode(identifier, args);
+            args.push_back(new PrimaryFuncCall(identifier, params));
 
         } else {
             // Caso: IDENTIFIER (variable simple)

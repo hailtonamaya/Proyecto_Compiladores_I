@@ -6,13 +6,8 @@
 
 enum class NodeKind
 {
-    ProgramNode,
-    VariableDeclNode,
-    Constant,
-    MethodDeclNode,
-    ParamDeclNode,
-    StmtNode,
-    AssignStmt,
+    ProgramNode, VariableDeclNode, Constant, MethodDeclNode,
+    ParamDeclNode, StmtNode, AssignStmt,
     ReturnStmt,
     IfStmt,
     WhileStmt,
@@ -35,6 +30,9 @@ enum class NodeKind
     ModTerm,
     Factor,
     Primary,
+    PrimaryConst,
+    PrimaryArray,
+    PrimaryFuncCall,
     RelationalEqualExpr,
     RelationalNotEqualExpr,
     RelationalLessThanExpr,
@@ -154,7 +152,7 @@ class ReturnStmt: public AstNode
         AstNode *expr;
 
         NodeKind kind() const override { return NodeKind::ReturnStmt; }
-        std::string toString() const override { return "ReturnStmt"; } 
+        std::string toString() const override;
 };
 
 class IfStmt: public AstNode
@@ -168,7 +166,7 @@ class IfStmt: public AstNode
         std::vector<AstNode *> stmts, elseStmts;
 
         NodeKind kind() const override { return NodeKind::IfStmt; }
-        std::string toString() const override { return "IfStmt"; } 
+        std::string toString() const override;
 };
 
 class WhileStmt: public AstNode
@@ -196,7 +194,7 @@ class CallStmt: public AstNode
         std::vector<AstNode *> args;
 
         NodeKind kind() const override { return NodeKind::CallStmt; }
-        std::string toString() const override { return "CallStmt"; }
+        std::string toString() const override;
 };
 
 class TypeNode: public AstNode
@@ -236,7 +234,7 @@ class PrintStmt: public AstNode
         std::string printStr;
 
         NodeKind kind() const override { return NodeKind::PrintStmt; }
-        std::string toString() const override { return "PrintStmt"; }
+        std::string toString() const override;
 };
 
 class ReadStmt: public AstNode
@@ -249,7 +247,7 @@ class ReadStmt: public AstNode
         std::string id;
 
         NodeKind kind() const override { return NodeKind::ReadStmt; }
-        std::string toString() const override { return "ReadStmt"; }
+        std::string toString() const override;
 };
 
 class ExprNode: public AstNode
@@ -530,7 +528,7 @@ class PrimaryConst: public AstNode
 
         AstNode* value;
 
-        NodeKind kind() const override { return NodeKind::Constant; }
+        NodeKind kind() const override { return NodeKind::PrimaryConst; }
         std::string toString() const override;
 };
 
@@ -545,4 +543,32 @@ class PrimaryIdentifier: public AstNode
 
         NodeKind kind() const override { return NodeKind::Primary; }
         std::string toString() const override {return identifier;};
+};
+
+class PrimaryArray: public AstNode
+{
+    public:
+        PrimaryArray(std::string identifier, AstNode* indexExpr)
+            : identifier(identifier), indexExpr(indexExpr)
+        {}
+
+        std::string identifier;
+        AstNode* indexExpr;
+
+        NodeKind kind() const override { return NodeKind::Primary; }
+        std::string toString() const override;
+};
+
+class PrimaryFuncCall: public AstNode
+{
+    public:
+        PrimaryFuncCall(std::string identifier, const std::vector<AstNode *>& args)
+            : identifier(identifier), args(args)
+        {}
+
+        std::string identifier;
+        std::vector<AstNode *> args;
+
+        NodeKind kind() const override { return NodeKind::Primary; }
+        std::string toString() const override;
 };

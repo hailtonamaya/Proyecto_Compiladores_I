@@ -80,6 +80,62 @@ std::string WhileStmt::toString() const
     return result;
 }
 
+std::string CallStmt::toString() const
+{
+    std::string result;
+    result += "CallStmt( 'Function' : " + id + "(";
+    for(int i = 0; i < args.size(); i++){
+        result += args[i]->toString();
+        if(i != args.size() - 1){
+            result += ", ";
+        }
+    }
+    result += "))\n";
+    return result;
+}
+
+std::string ReturnStmt::toString() const
+{
+    std::string result;
+    result += "ReturnStmt( 'Return' : " + expr->toString() + ")\n";
+    return result;
+}
+
+std::string IfStmt::toString() const
+{
+    std::string result;
+    result += "IfStmt( 'Condition' : " + expr->toString() + ")\n";
+    for (const auto i : stmts) {
+        result += "\t\t\t" + i->toString() + "\n" ;
+    }
+    if(elseStmts.size() > 0){
+        result += "\t\tElseStmts\n";
+        for (const auto i : elseStmts) {
+            result += "\t\t\t" + i->toString() + "\n" ;
+        }
+    }
+    result += "\n";
+    return result;
+}
+
+std::string PrintStmt::toString() const
+{
+    std::string result;
+    if(printExpr != nullptr){
+        result += "PrintStmt( 'Print' : " + printExpr->toString() + ")\n";
+    }else{
+        result += "PrintStmt( 'Print' : " + printStr + ")\n";
+    }
+    return result;
+}
+
+std::string ReadStmt::toString() const
+{
+    std::string result;
+    result += "ReadStmt( 'Read' : " + id + ")\n";
+    return result;
+}
+
 std::string BooleanExpr::toString() const
 {
     std::string result;
@@ -91,7 +147,6 @@ std::string BooleanExpr::toString() const
     }
     return result;
 }
-
 
 std::string BooleanTerm::toString() const
 {
@@ -215,4 +270,23 @@ std::string PrimaryNode::toString() const
 std::string PrimaryConst::toString() const
 {
     return value->toString();
+}
+
+std::string PrimaryArray::toString() const
+{
+    return identifier + "[" + indexExpr->toString() + "]";
+}
+
+std::string PrimaryFuncCall::toString() const
+{
+    std::string result;
+    result += identifier + "(";
+    for(int i = 0; i < args.size(); i++){
+        result += args[i]->toString();
+        if(i != args.size() - 1){
+            result += ", ";
+        }
+    }
+    result += ")";
+    return result;
 }
