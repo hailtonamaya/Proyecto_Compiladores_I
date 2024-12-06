@@ -260,11 +260,8 @@ std::string Factor::toString() const
 
 std::string PrimaryNode::toString() const
 {
-    std::string result;
-    for(int i = 0; i < args.size(); i++){
-        result += args[i]->toString();
-    }
-    return result;
+    
+    return args->toString();
 }
 
 std::string PrimaryConst::toString() const
@@ -288,5 +285,16 @@ std::string PrimaryFuncCall::toString() const
         }
     }
     result += ")";
+    return result;
+}
+
+std::string ParamDeclNode::toString() const
+{
+    std::string result;
+    if(isReference){
+        result += "ref " + type->toString() + " " + name;
+    }else{
+        result += type->toString() + " " + name;
+    }
     return result;
 }

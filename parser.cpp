@@ -412,7 +412,6 @@ AstNode* Parser::assign_stmt()
         if(curr_tk ==Token::OpenBracket){
             curr_tk = lex.getNextToken();
             indexExpr = expression();
-            //TODO:arreglar parte de arreglos
             if(curr_tk == Token::CloseBracket){
                 curr_tk = lex.getNextToken();
                 if(curr_tk == Token::OpAssign){
@@ -519,7 +518,9 @@ std::vector<AstNode*> Parser::block()
     std::vector<AstNode*> stmts;
     if(curr_tk == Token::OpenCurly){
         curr_tk = lex.getNextToken();
-        while(curr_tk == Token::Ident || getKeyword(lex.getText()) == Keyword::Int || getKeyword(lex.getText()) == Keyword::While || getKeyword(lex.getText()) == Keyword::Return || getKeyword(lex.getText()) == Keyword::Print || getKeyword(lex.getText()) == Keyword::Read){
+        while(curr_tk == Token::Ident || getKeyword(lex.getText()) == Keyword::Int 
+                    || getKeyword(lex.getText()) == Keyword::While || getKeyword(lex.getText()) == Keyword::Return 
+                    || getKeyword(lex.getText()) == Keyword::Print || getKeyword(lex.getText()) == Keyword::Read){
             stmts.push_back(stmt());
         }  
         if(curr_tk == Token::CloseCurly){
@@ -839,11 +840,11 @@ AstNode* Parser::factor()
 }
 
 AstNode* Parser::primary() {
-    std::vector<AstNode*> args;
+    AstNode* args = nullptr;
     if (curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary) {
         // Caso: constante
         AstNode* constantNode = constant(); // Genera el nodo de constante
-        args.push_back(new PrimaryConst(constantNode));
+        args=new PrimaryConst(constantNode);
 
     } else if (curr_tk == Token::Ident) {
         // Caso: identificador (variable, acceso a array, o llamada a función)
@@ -859,7 +860,7 @@ AstNode* Parser::primary() {
                                          ": Expected ']', but found '" + lex.getText() + "'");
             }
             curr_tk = lex.getNextToken();
-            args.push_back(new PrimaryArray(identifier, indexExpr));
+            args = new PrimaryArray(identifier, indexExpr);
 
         } else if (curr_tk == Token::OpenPar) {
             // Caso: IDENTIFIER(expression, ...)
@@ -882,11 +883,11 @@ AstNode* Parser::primary() {
                 }
             }
             curr_tk = lex.getNextToken();
-            args.push_back(new PrimaryFuncCall(identifier, params));
+            args=new PrimaryFuncCall(identifier, params);
 
         } else {
             // Caso: IDENTIFIER (variable simple)
-            args.push_back(new PrimaryIdentifier(identifier));
+            args=new PrimaryIdentifier(identifier);
         }
 
     } else if (curr_tk == Token::OpenPar) {
