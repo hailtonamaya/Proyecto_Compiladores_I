@@ -36,7 +36,7 @@ class ExprEvaluator
         std::string returnStmtNode(ReturnStmt *node, std::string methodId = "");
         void ifStmtNode(IfStmt *node, std::string methodId = "");
         void whileStmtNode(WhileStmt *node, std::string methodId = "");
-        void callStmtNode(CallStmt *node, std::string methodId = "");
+        std::string callStmtNode(CallStmt *node, std::string methodId = "");
         std::string typeNode(TypeNode *node);
         std::string methodTypeNode(MethodType *node);
         std::string printStmt(PrintStmt *node, std::string methodId = "");
@@ -45,12 +45,12 @@ class ExprEvaluator
         std::string booleanTerm(BooleanTerm *node, std::string methodId); 
         std::string booleanFactor(BooleanFactor *node, std::string methodId);
         std::string relationalExpr(RelationalExpr *node, std::string methodId);
-        bool relationalEqualExpr(RelationalEqualExpr *node);
-        bool relationalNotEqualExpr(RelationalNotEqualExpr *node);
-        bool relationalLessThanExpr(RelationalLessThanExpr *node);
-        bool relationalLessEqualExpr(RelationalLessEqualExpr *node);
+        std::string relationalEqualExpr(RelationalEqualExpr *node, std::string methodId);
+        std::string relationalNotEqualExpr(RelationalNotEqualExpr *node, std::string methodId);
+        std::string relationalLessThanExpr(RelationalLessThanExpr *node, std::string methodId);
+        std::string relationalLessEqualExpr(RelationalLessEqualExpr *node, std::string methodId);
         std::string relationalGreaterThanExpr(RelationalGreaterThanExpr *node, std::string methodId);
-        bool relationalGreaterEqualExpr(RelationalGreaterEqualExpr *node);
+        std::string relationalGreaterEqualExpr(RelationalGreaterEqualExpr *node, std::string methodId);
         std::string arithmeticExpr(ArithmeticExpr *node, std::string methodId);
         int arithAddExpr(ArithAddExpr *node, std::string methodId);
         int arithSubExpr(ArithSubExpr *node, std::string methodId);
