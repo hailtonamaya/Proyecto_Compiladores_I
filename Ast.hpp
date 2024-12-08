@@ -124,7 +124,7 @@ class ParamDeclNode: public AstNode
         std::string name;
 
         NodeKind kind() const override { return NodeKind::ParamDeclNode; }
-        std::string toString() const override;
+        std::string toString() const override {return name;}
 
 };
 
@@ -556,7 +556,7 @@ class PrimaryArray: public AstNode
         std::string identifier;
         AstNode* indexExpr;
 
-        NodeKind kind() const override { return NodeKind::Primary; }
+        NodeKind kind() const override { return NodeKind::PrimaryArray; }
         std::string toString() const override;
 };
 
@@ -570,7 +570,7 @@ class PrimaryFuncCall: public AstNode
         std::string identifier;
         std::vector<AstNode *> args;
 
-        NodeKind kind() const override { return NodeKind::Primary; }
-        std::string toString() const override;
+        NodeKind kind() const override { return NodeKind::PrimaryFuncCall; }
+        std::string toString() const override {return identifier;};
 };
 

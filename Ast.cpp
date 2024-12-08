@@ -274,27 +274,27 @@ std::string PrimaryArray::toString() const
     return identifier + "[" + indexExpr->toString() + "]";
 }
 
-std::string PrimaryFuncCall::toString() const
-{
-    std::string result;
-    result += identifier + "(";
-    for(int i = 0; i < args.size(); i++){
-        result += args[i]->toString();
-        if(i != args.size() - 1){
-            result += ", ";
-        }
-    }
-    result += ")";
-    return result;
-}
+// std::string PrimaryFuncCall::toString() const
+// {
+//     std::string result;
+//     result += identifier + "(";
+//     for(int i = 0; i < args.size(); i++){
+//         result += args[i]->toString();
+//         if(i != args.size() - 1){
+//             result += ", ";
+//         }
+//     }
+//     result += ")";
+//     return result;
+// }
 
-std::string ParamDeclNode::toString() const
-{
-    std::string result;
-    if(isReference){
-        result += "ref " + type->toString() + " " + name;
-    }else{
-        result += type->toString() + " " + name;
-    }
-    return result;
-}
+// std::string ParamDeclNode::toString() const
+// {
+//     std::string result;
+//     if(isReference){
+//         result += "ref " + type->toString() + " " + name;
+//     }else{
+//         result += type->toString() + " " + name;
+//     }
+//     return result;
+// }

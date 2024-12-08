@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     try {
         AstNode *root = parser.parse();
         ExprEvaluator expr_eval;
-        std::cout << root->toString() << "\n";
+        //std::cout << root->toString() << "\n";
         std::cout << expr_eval.evaluate(root) << "\n";
     } catch (const std::runtime_error& err) {
         std::cerr << err.what() << '\n';

@@ -29,7 +29,7 @@ stmt -> assign_stmt
 
 assign_stmt -> IDENTIFIER [ OPEN_BRACKET expression CLOSE_BRACKET ] OP_ASSIGN expression SEMICOLON
 
-return_stmt -> KW_RETURN expresion SEMICOLON
+return_stmt -> KW_RETURN expression SEMICOLON
 
 if_stmt -> KW_IF OPEN_PAR expression CLOSE_PAR
             block

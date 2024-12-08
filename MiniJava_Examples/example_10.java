@@ -9,7 +9,7 @@ class NestedMethodCalls {
 
     void displayResult() {
         int result;
-        result = calculateExpression(0xabcdef10101, 3, 4);
+        result = calculateExpression(0b0101, 3,4);
         print(result);
     }
 }

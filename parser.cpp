@@ -776,26 +776,25 @@ AstNode* Parser::relational_expression()
     return new RelationalExpr(left);
 }
 
-AstNode* Parser::arithmetic_expression()
-{
-    AstNode *t1 = term();
-    std::vector<AstNode*> terms;
-    while(curr_tk == Token::OpAdd || curr_tk == Token::OpSub){
-        if(curr_tk == Token::OpAdd){
-            curr_tk = lex.getNextToken();
-            AstNode *t2 = term();
-            terms.push_back(new ArithAddExpr(t1, t2));
-        }else if(curr_tk == Token::OpSub){
-            curr_tk = lex.getNextToken();
-            AstNode *t2 = term();
-            terms.push_back(new ArithSubExpr(t1, t2));
+AstNode* Parser::arithmetic_expression() {
+    AstNode* t1 = term();  // Procesa el primer término (puede ser un número o una expresión más compleja)
+    
+    // Itera mientras haya operadores de suma o resta
+    while (curr_tk == Token::OpAdd || curr_tk == Token::OpSub) {
+        if (curr_tk == Token::OpAdd) {
+            curr_tk = lex.getNextToken();  // Consume el operador '+'
+            AstNode* t2 = term();  // Procesa el siguiente término
+            t1 = new ArithAddExpr(t1, t2);  // Construye el árbol acumulativo
+        } else if (curr_tk == Token::OpSub) {
+            curr_tk = lex.getNextToken();  // Consume el operador '-'
+            AstNode* t2 = term();  // Procesa el siguiente término
+            t1 = new ArithSubExpr(t1, t2);  // Construye el árbol acumulativo
         }
     }
-    if(terms.size() == 0){
-        terms.push_back(t1);
-    }
-    return new ArithmeticExpr(terms);
+    
+    return t1;  // Devuelve el árbol construido
 }
+
 
 AstNode* Parser::term()
 {
@@ -841,6 +840,7 @@ AstNode* Parser::factor()
 
 AstNode* Parser::primary() {
     AstNode* args = nullptr;
+    std::vector<AstNode*> params;
     if (curr_tk == Token::IntConst || curr_tk == Token::HexConst || curr_tk == Token::Binary) {
         // Caso: constante
         AstNode* constantNode = constant(); // Genera el nodo de constante
@@ -865,7 +865,7 @@ AstNode* Parser::primary() {
         } else if (curr_tk == Token::OpenPar) {
             // Caso: IDENTIFIER(expression, ...)
             curr_tk = lex.getNextToken();
-            std::vector<AstNode*> params;
+            
 
             if (curr_tk != Token::ClosePar) { // Si no está vacío, procesar argumentos
                 do {
@@ -877,13 +877,19 @@ AstNode* Parser::primary() {
                     }
                 } while (true);
 
-                if (curr_tk != Token::ClosePar) {
+                if(curr_tk == Token::ClosePar){
+                    curr_tk = lex.getNextToken();
+                    args = new PrimaryFuncCall(identifier, params);
+                }else{
                     throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                              ": Expected ')', but found '" + lex.getText() + "'");
                 }
+            }else{
+                curr_tk = lex.getNextToken();
+                args = new PrimaryFuncCall(identifier, params);
+                std::cout << static_cast<int>(args->kind()) << args->toString()<< std::endl;
+
             }
-            curr_tk = lex.getNextToken();
-            args=new PrimaryFuncCall(identifier, params);
 
         } else {
             // Caso: IDENTIFIER (variable simple)
@@ -899,13 +905,13 @@ AstNode* Parser::primary() {
                                      ": Expected ')', but found '" + lex.getText() + "'");
         }
         curr_tk = lex.getNextToken();
-        // return new PrimaryNode(exprNode, true);
+        //args = new PrimaryNode(exprNode);
 
     } else {
         // Error: no coincide con ninguna opción válida
         throw std::runtime_error("Line " + std::to_string(lex.getLineNo()) +
                                  ": Expected INT CONST, IDENTIFIER, '(', but found '" +
                                  lex.getText() + "'");
-    }
+    }    
     return new PrimaryNode(args);
 }
