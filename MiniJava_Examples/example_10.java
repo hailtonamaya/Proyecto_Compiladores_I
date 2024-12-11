@@ -12,4 +12,8 @@ class NestedMethodCalls {
         result = calculateExpression(0b0101, 3,4);
         print(result);
     }
+
+    void main() {
+        displayResult();
+    }
 }

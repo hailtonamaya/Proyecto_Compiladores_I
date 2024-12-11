@@ -14,4 +14,14 @@ class PrimeChecker {
         }
         return 1;
     }
+
+    void main() {
+        int num;
+        num = 9;
+        if (isPrime(num) == 1) {
+            print(1);
+        } else {
+            print(0);
+        }
+    }
 }

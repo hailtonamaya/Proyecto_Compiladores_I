@@ -11,10 +11,14 @@ class RefExample {
        
         i = 0;
         while (i < 5) {
-            incrementBy( base, i);
+            incrementBy(base, i);
             values[i] = base;
             i = i + 1;
         }
         print(values[4]);
+    }
+
+    void main() {
+        applyIncrements();
     }
 }

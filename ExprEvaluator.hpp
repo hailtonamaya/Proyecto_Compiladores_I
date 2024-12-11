@@ -24,7 +24,7 @@ class ExprEvaluator
         bool isInt(std::string input);
         int searchVariableInMethod(std::string id, std::string methodId);
         std::string runMethods(std::string methodId);
-        void runVoidMethods(std::string methodId);
+        void runVoidMethod(std::string methodId);
 
         std::string evaluate(AstNode *node, std::string methodId = "");
         void programNode(ProgramNode *node);
@@ -34,7 +34,7 @@ class ExprEvaluator
         std::string paramDeclNode(ParamDeclNode *node, std::string methodId);
         void assignStmtNode(AssignStmt *node, std::string methodId = "");
         std::string returnStmtNode(ReturnStmt *node, std::string methodId = "");
-        void ifStmtNode(IfStmt *node, std::string methodId = "");
+        std::string ifStmtNode(IfStmt *node, std::string methodId = "");
         void whileStmtNode(WhileStmt *node, std::string methodId = "");
         std::string callStmtNode(CallStmt *node, std::string methodId = "");
         std::string typeNode(TypeNode *node);

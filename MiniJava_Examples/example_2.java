@@ -6,4 +6,10 @@ class FactorialCalculator {
             return n * factorial(n - 1);
         }
     }
+
+    void main() {
+        int n;
+        n = 5;
+        print(factorial(n));
+    }
 }

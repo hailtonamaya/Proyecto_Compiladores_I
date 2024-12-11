@@ -8,10 +8,14 @@ class FibonacciCalculator {
         i = 0;
         while (i < count) {
             print(a);
+            print("-");
             temp = a + b;
             a = b;
             b = temp;
             i = i + 1;
         }
+    }
+    void main(){
+        printFibonacci(10);
     }
 }

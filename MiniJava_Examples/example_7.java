@@ -9,6 +9,11 @@ class MathOperations {
 
     void showResults() {
         print(add(5, 10));
+        print(" ");
         print(addThree(5, 10, 15));
+    }
+
+    void main() {
+        showResults();
     }
 }

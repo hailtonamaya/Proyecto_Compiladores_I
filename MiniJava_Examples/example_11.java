@@ -11,4 +11,7 @@ class Hola{
         }
         print(b);
     }
+    void main(){
+        hola2();
+    }
 }

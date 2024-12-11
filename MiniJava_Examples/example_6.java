@@ -7,4 +7,8 @@ class NumberAnalyzer {
             print("Both numbers are zero or one of them is zero");
         }
     }
+
+    void main() {
+        analyze(5, 10);
+    }
 }
