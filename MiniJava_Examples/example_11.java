@@ -8,6 +8,7 @@ class Hola{
             a=a-1;
             b=b+1;
             print(b);
+            print(" - ");
         }
         print(b);
     }

@@ -8,7 +8,7 @@ class FibonacciCalculator {
         i = 0;
         while (i < count) {
             print(a);
-            print("-");
+            print(" ");
             temp = a + b;
             a = b;
             b = temp;
